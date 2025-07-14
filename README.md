@@ -157,6 +157,22 @@ Migracja do bazy nie testowej
 php bin/console doctrine:migrations:migrate 
 ```
 
+Dodanie odpowiednich wpisów do pliku .env.test
+
+```
+APP_ENV=test
+APP_DEBUG=1
+APP_SECRET=your_secret_key
+DATABASE_URL="sqlite:///%kernel.project_dir%/var/data_%kernel.environment%.db"
+JWT_SECRET=%kernel.project_dir%/config/jwt/private.pem
+JWT_PUBLIC=%kernel.project_dir%/config/jwt/public.pem
+JWT_PASSPHRASE=hasło
+```
+
+Zmienić w konfiguracji phpUnit w sekcji command line na:
+
+- interpreter zmienić na php.exe
+- Environment variables  - ustawić na .env.test
 ---
 ## 7. Uruchomienie DataFixtures
 
@@ -170,5 +186,15 @@ Uruchomienie fixtures w bazie danych
 
 ```
 php bin/console doctrine:fixtures:load
+```
+
+Uruchomienie serwera 
+```
+symfony server:start
+```
+Uruchomić testy najlepiej przez run PHPUnit z poziomu IDE lub przez terminal:
+
+```
+php bin/phpunit
 ```
 

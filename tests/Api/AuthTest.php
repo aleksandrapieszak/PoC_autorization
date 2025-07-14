@@ -3,6 +3,7 @@
 namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+use App\Kernel;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -11,11 +12,7 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class AuthTest extends ApiTestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        self::bootKernel();
-    }
+
     /**
      * @throws TransportExceptionInterface
      * @throws ServerExceptionInterface
@@ -30,7 +27,7 @@ class AuthTest extends ApiTestCase
         // Logowanie i pobranie tokena
         $response = $client->request('POST', '/api/login_check', [
             'json' => [
-                'username' => 'user@example.com',
+                'username' => 'admin@example.com',
                 'password' => 'adminpass'
             ]
         ]);
