@@ -1,31 +1,24 @@
 <?php
 
 namespace App\Tests\Api;
-
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-use App\Kernel;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use ApiPlatform\Symfony\Bundle\Test\Client;
 
 class AuthTest extends ApiTestCase
 {
+    protected Client $client;
 
-    /**
-     * @throws TransportExceptionInterface
-     * @throws ServerExceptionInterface
-     * @throws RedirectionExceptionInterface
-     * @throws DecodingExceptionInterface
-     * @throws ClientExceptionInterface
-     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->client = static::createClient();
+    }
+
     public function testLoginAndAccessProtectedEndpoint(): void
     {
-        $client = static::createClient();
 
         // Logowanie i pobranie tokena
-        $response = $client->request('POST', '/api/login_check', [
+        $response = $this->client->request('POST', '/api/login_check', [
             'json' => [
                 'username' => 'admin@example.com',
                 'password' => 'adminpass'
@@ -35,7 +28,7 @@ class AuthTest extends ApiTestCase
         $this->assertArrayHasKey('token', $data);
 
         // Próba wejścia na chroniony endpoint z tokenem
-        $client->request('GET', '/api/admin', [
+        $this->client->request('GET', '/api/admin', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $data['token'],
             ],
@@ -43,5 +36,29 @@ class AuthTest extends ApiTestCase
 
         $this->assertResponseIsSuccessful();
 
+    }
+
+    public function testUserCannotAccessAdminEndpoint(): void
+    {
+
+        // Logowanie i pobranie tokena dla zwykłego użytkownika
+        $response = $this->client->request('POST', '/api/login_check', [
+            'json' => [
+                'username' => 'user@example.com', // login zwykłego użytkownika
+                'password' => 'adminpass'
+            ]
+        ]);
+        $data = $response->toArray();
+        $this->assertArrayHasKey('token', $data);
+
+        // Próba wejścia na chroniony endpoint admina z tokenem usera
+        $this->client->request('GET', '/api/admin', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $data['token'],
+            ],
+        ]);
+
+        // dostęp powinien być zabroniony (403)
+        $this->assertResponseStatusCodeSame(403);
     }
 }
